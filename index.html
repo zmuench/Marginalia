@@ -207,6 +207,7 @@ const isOwner = () => !!(auth && auth.token);
 
 async function gh(path, opts = {}) {
   const r = await fetch(`${API}/repos/${auth.owner}/${auth.repo}/${path}`, {
+    cache: 'no-store',   // never reuse a cached copy: a stale file version makes GitHub reject the save (409)
     ...opts,
     headers: { Authorization: `Bearer ${auth.token}`, Accept: 'application/vnd.github+json',
                'X-GitHub-Api-Version': '2022-11-28', ...(opts.body ? {'Content-Type':'application/json'} : {}), ...(opts.headers || {}) },
@@ -220,7 +221,7 @@ async function readRepoFile(path) {
     let text = m.content ? b64dec(m.content) : null;
     if (text === null) {   // files over 1 MB come without inline content
       text = await (await fetch(`${API}/repos/${auth.owner}/${auth.repo}/contents/${path}?ref=${encodeURIComponent(auth.branch)}`,
-        { headers: { Authorization: `Bearer ${auth.token}`, Accept: 'application/vnd.github.raw+json' } })).text();
+        { cache: 'no-store', headers: { Authorization: `Bearer ${auth.token}`, Accept: 'application/vnd.github.raw+json' } })).text();
     }
     return { text, sha: m.sha };
   } catch (e) { if (e.status === 404) return { text: null, sha: null }; throw e; }
