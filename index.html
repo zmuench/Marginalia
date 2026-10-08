@@ -91,6 +91,14 @@ button.quiet:hover{color:var(--ink)}
 .post.gray .chip{background:#fff}
 .del{margin-left:auto;background:none;border:0;color:var(--muted);font:inherit;font-size:.78rem;cursor:pointer;padding:0}
 .del:hover{color:var(--danger)}
+.owner{margin-left:auto;display:flex;gap:14px}
+.owner .del{margin-left:0}
+.edit{background:none;border:0;color:var(--muted);font:inherit;font-size:.78rem;cursor:pointer;padding:0}
+.edit:hover{color:var(--ink)}
+.edited{font-size:.78rem}
+.editor{margin-top:8px}
+.editor textarea{min-height:120px}
+.post.gray .editor textarea{background:#fff}
 .post:target{box-shadow:inset 4px 0 0 var(--accent)}
 
 .about{padding:36px 0 56px}
@@ -246,6 +254,7 @@ const postsJSON = a => JSON.stringify(a, null, 2) + '\n';
 let posts = [];          // oldest first
 let aboutText = '';
 let showCount = C.perPage;
+let editingId = null;    // post currently open for editing
 const params = new URLSearchParams(location.search);
 const view = { about: params.has('about'), tag: params.get('tag') ? cleanTag(params.get('tag')) : '' };
 
@@ -302,15 +311,57 @@ function renderFeed() {
     <article class="post ${p.shade}" id="p-${esc(p.id)}"><div class="wrap">
       <div class="meta">
         <a class="when" href="#p-${esc(p.id)}"><time datetime="${esc(p.created)}">${esc(niceDate(p.created))}</time></a>
-        ${isOwner() ? `<button class="del" data-id="${esc(p.id)}">Delete</button>` : ''}
+        ${p.edited ? `<span class="edited" title="Edited ${esc(new Date(p.edited).toLocaleString())}">· edited</span>` : ''}
+        ${isOwner() && editingId !== p.id ? `<span class="owner"><button class="edit" data-id="${esc(p.id)}">Edit</button><button class="del" data-id="${esc(p.id)}">Delete</button></span>` : ''}
       </div>
-      <p class="body">${render(p.body)}</p>
-      ${(p.tags || []).length ? `<div class="tags">${p.tags.map(t => `<a class="chip" href="?tag=${encodeURIComponent(t)}">#${esc(t)}</a>`).join('')}</div>` : ''}
+      ${editingId === p.id ? editorHTML(p) : `<p class="body">${render(p.body)}</p>
+      ${(p.tags || []).length ? `<div class="tags">${p.tags.map(t => `<a class="chip" href="?tag=${encodeURIComponent(t)}">#${esc(t)}</a>`).join('')}</div>` : ''}`}
     </div></article>`).join('')
     : `<p class="empty">${view.tag ? `No posts tagged #${esc(view.tag)} yet.` : 'No posts yet.'}</p>`)
     + (shaded.length > showCount ? '<div class="pager"><button class="quiet" id="more">Show older posts</button></div>' : '');
   $('footer').innerHTML = `${posts.length} post${posts.length === 1 ? '' : 's'} · <a href="?about">About</a>`;
   if (location.hash.startsWith('#p-')) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+}
+function editorHTML(p) {
+  const cur = p.tags || [];
+  const all = [...new Set([...C.tags.map(cleanTag), ...tagCounts().map(([t]) => t), ...cur])].filter(Boolean);
+  return `<form class="editor compose" style="padding:0;border:0" data-id="${esc(p.id)}">
+    <textarea class="editBody" maxlength="${C.maxLength}" required>${esc(p.body)}</textarea>
+    <div class="pick" role="group" aria-label="Tags">${all.map((t, i) =>
+      `<input type="checkbox" value="${esc(t)}" id="e${i}"${cur.includes(t) ? ' checked' : ''}><label for="e${i}">#${esc(t)}</label>`).join('')}</div>
+    <div class="row">
+      <input type="text" class="editNew" placeholder="New tags, comma-separated">
+      <button class="primary editSave">Save</button>
+      <button type="button" class="quiet editCancel">Cancel</button>
+    </div>
+    <p class="hint">⌘/Ctrl + Enter to save. Esc to cancel.</p>
+  </form>`;
+}
+function openEditor(id) {
+  editingId = id; renderFeed();
+  const box = document.querySelector('.editor .editBody');
+  if (box) { box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+}
+function closeEditor() { const id = editingId; editingId = null; renderFeed(); document.getElementById('p-' + id)?.scrollIntoView({ block: 'nearest' }); }
+async function saveEdit(form) {
+  const id = form.dataset.id;
+  const body = form.querySelector('.editBody').value.replace(/\r\n/g, '\n').trim();
+  if (!body) return toast('A post can’t be empty. Use Delete to remove it.', true);
+  if (body.length > C.maxLength) return toast(`That post is over ${C.maxLength} characters.`, true);
+  const tags = [...new Set([
+    ...[...form.querySelectorAll('.pick input:checked')].map(i => i.value),
+    ...form.querySelector('.editNew').value.split(',').map(cleanTag)].filter(Boolean))];
+  const btn = form.querySelector('.editSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    let found = false;
+    const text = await updateRepoFile('posts.json', t => postsJSON(parsePosts(t).map(p => {
+      if (p.id !== id) return p;
+      found = true; return { ...p, body, tags, edited: new Date().toISOString() };
+    })), `Edit note: ${body.slice(0, 50)}`);
+    if (!found) throw new Error('that post no longer exists');
+    posts = parsePosts(text); editingId = null; renderAll();
+    toast('Saved. Readers will see the change within a minute or two.');
+  } catch (err) { toast(`Couldn't save (${err.message}). Your edits are still in the box.`, true); btn.disabled = false; btn.textContent = 'Save'; }
 }
 function renderAbout(editing = false) {
   $('main').innerHTML = `<section class="about"><div class="wrap">
@@ -411,10 +462,18 @@ $('signOut').addEventListener('click', () => {
 $('main').addEventListener('click', e => {
   const t = e.target;
   if (t.matches('.del')) deletePost(t.dataset.id);
+  else if (t.matches('.edit')) openEditor(t.dataset.id);
+  else if (t.matches('.editCancel')) closeEditor();
   else if (t.id === 'more') { showCount += C.perPage; renderFeed(); }
   else if (t.id === 'aboutEdit') { e.preventDefault(); renderAbout(true); $('aboutBox').focus(); }
   else if (t.id === 'aboutCancel') renderAbout();
   else if (t.id === 'aboutSave') saveAbout();
+});
+$('main').addEventListener('submit', e => { if (e.target.matches('.editor')) { e.preventDefault(); saveEdit(e.target); } });
+$('main').addEventListener('keydown', e => {
+  if (!e.target.matches('.editor .editBody')) return;
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); e.target.form.requestSubmit(); }
+  else if (e.key === 'Escape') closeEditor();
 });
 window.addEventListener('hashchange', () => { if (location.hash === '#write') showSetup(); });
 
