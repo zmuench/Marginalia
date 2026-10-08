@@ -12,7 +12,7 @@ window.MARGINALIA = {
   // GitHub repo that holds this site. Leave blank when hosting at
   // https://USERNAME.github.io/REPO/ — it's detected automatically.
   // Fill these in only if you use a custom domain.
-  owner:  '',
-  repo:   '',
+  owner:  'zmuench',
+  repo:   'Marginalia',
   branch: '',        // blank = the repo's default branch
 };
