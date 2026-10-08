@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marginalia</title>
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+:root{
+  --gray:#EEEEEC; --white:#FFFFFF; --page:#FFFFFF;
+  --ink:#1D1D1F; --muted:#6E6E73; --line:#DCDCD8;
+  --accent:#2F5D7C; --accent-soft:#E3ECF2; --danger:#B3261E; --ok:#2E6B3F;
+  --col:640px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--page);color:var(--ink);
+  font:17px/1.6 "Source Serif 4",Georgia,serif;-webkit-font-smoothing:antialiased}
+header,.meta,.tags,.compose,.pager,.panel,.tagbar,.note{font-family:Inter,system-ui,sans-serif}
+.wrap{max-width:var(--col);margin:0 auto;padding:0 16px}
+a{color:var(--accent)}
+
+header{padding:40px 0 20px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:14px}
+h1{margin:0;font:600 1.75rem/1.2 "Source Serif 4",Georgia,serif;letter-spacing:-.015em}
+h1 a{color:inherit;text-decoration:none}
+.tagline{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.toplinks{margin-left:auto;font-size:.85rem;display:flex;gap:14px;align-items:center}
+.toplinks a,.toplinks button{color:var(--muted);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer;padding:0}
+.toplinks a:hover,.toplinks button:hover,.toplinks a[aria-current]{color:var(--ink)}
+
+.tagbox{margin-top:16px;display:inline-block}
+.tagbox summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  font:500 .85rem Inter,system-ui,sans-serif;color:var(--muted);user-select:none;padding:2px 0}
+.tagbox summary::-webkit-details-marker{display:none}
+.tagbox summary:hover{color:var(--ink)}
+.tagbox summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.tagbox .cur{color:var(--accent)}
+.caret{width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+.tagbox[open] .caret{transform:rotate(90deg)}
+.tagbox[open]{display:block}
+.clear{font:.8rem Inter,system-ui,sans-serif;margin-left:12px;color:var(--muted)}
+.tagbox[open] + .clear{display:inline-block;margin:10px 0 0}
+.tagbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{display:inline-block;font-size:.78rem;font-weight:500;padding:3px 10px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);text-decoration:none;border:1px solid transparent}
+.chip.on{background:var(--accent);color:#fff}
+.chip .n{opacity:.6;margin-left:3px}
+
+/* Compose / panels */
+.compose,.panel{padding:22px 0;border-bottom:1px solid var(--line)}
+textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border:1px solid var(--line);
+  border-radius:10px;font:17px/1.55 "Source Serif 4",Georgia,serif;color:var(--ink);background:#fff}
+textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.pick{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.pick input{position:absolute;opacity:0;pointer-events:none}
+.pick label{cursor:pointer;font-size:.8rem;padding:4px 11px;border-radius:999px;border:1px solid var(--line);color:var(--muted);user-select:none}
+.pick input:checked+label{background:var(--accent);border-color:var(--accent);color:#fff}
+.pick input:focus-visible+label{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row input[type=text],.row input[type=password]{flex:1;min-width:160px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:.88rem}
+.count{font-size:.8rem;color:var(--muted);min-width:5ch;text-align:right}
+.count.over{color:var(--danger)}
+button.primary{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 18px;font:600 .9rem Inter,system-ui,sans-serif;cursor:pointer}
+button.primary:hover{filter:brightness(1.1)}
+button.primary:disabled{opacity:.55;cursor:default;filter:none}
+button.quiet{background:none;border:0;color:var(--muted);font:500 .85rem Inter,system-ui,sans-serif;cursor:pointer;padding:9px 6px}
+button.quiet:hover{color:var(--ink)}
+.err{color:var(--danger);font-size:.88rem;margin:8px 0 0}
+.hint{font:.75rem Inter,system-ui,sans-serif;color:var(--muted);margin-top:8px}
+.panel h2{font:600 1rem Inter,system-ui,sans-serif;margin:0 0 6px}
+.panel p{font-size:.88rem;color:var(--muted);margin:0 0 12px;line-height:1.5}
+.note{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;
+  font-size:.85rem;padding:10px 16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);max-width:calc(100% - 32px);z-index:5}
+.note.bad{background:var(--danger)}
+
+/* Feed — full-width bands that alternate */
+.post{border-bottom:1px solid var(--line)}
+.post.gray{background:var(--gray)}
+.post.white{background:var(--white)}
+.post .wrap{padding-top:22px;padding-bottom:22px}
+.meta{display:flex;align-items:baseline;gap:8px;font-size:.85rem;color:var(--muted)}
+.meta a.when{color:inherit;text-decoration:none}
+.meta a.when:hover{text-decoration:underline}
+.body{margin:4px 0 0;overflow-wrap:anywhere}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.post.gray .chip{background:#fff}
+.del{margin-left:auto;background:none;border:0;color:var(--muted);font:inherit;font-size:.78rem;cursor:pointer;padding:0}
+.del:hover{color:var(--danger)}
+.post:target{box-shadow:inset 4px 0 0 var(--accent)}
+
+.about{padding:36px 0 56px}
+.about .body{margin:0}
+.about .row{margin-top:12px}
+.about p.back{font:.85rem Inter,system-ui,sans-serif;margin-top:28px;display:flex;gap:18px}
+
+.empty{padding:60px 0;text-align:center;color:var(--muted);font-family:Inter,system-ui,sans-serif}
+.pager{text-align:center;padding:24px 0 8px}
+footer{text-align:center;color:var(--muted);font:.78rem Inter,system-ui,sans-serif;padding:32px 0 40px}
+footer a{color:inherit}
+
+@media (max-width:520px){
+  body{font-size:16px}
+  header{padding-top:24px}
+}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <div class="brand">
+    <div>
+      <h1><a href="./" id="title">Marginalia</a></h1>
+      <p class="tagline" id="tagline"></p>
+    </div>
+    <nav class="toplinks">
+      <a href="?about" id="aboutLink">About</a>
+      <button id="signOut" hidden title="Remove your GitHub token from this device">Sign out</button>
+    </nav>
+  </div>
+  <div id="tagsArea"></div>
+</div></header>
+
+<!-- One-time device setup: reached at  …/#write  -->
+<section class="panel" id="setup" hidden><div class="wrap">
+  <h2>Set up posting on this device</h2>
+  <p>Paste a GitHub token that can write to <b id="repoName">this repo</b>. It's stored only in this browser.
+     Readers never see the posting tools.</p>
+  <form class="row" id="setupForm">
+    <input type="password" id="tokenInput" placeholder="github_pat_…" autocomplete="off" required>
+    <button class="primary">Save</button>
+    <button type="button" class="quiet" id="setupCancel">Cancel</button>
+  </form>
+  <p class="err" id="setupErr" hidden></p>
+</div></section>
+
+<section class="compose" id="compose" hidden><div class="wrap">
+  <form id="composer">
+    <textarea id="body" placeholder="Today's thought or learning point…" required></textarea>
+    <div class="pick" id="pick" role="group" aria-label="Tags"></div>
+    <div class="row">
+      <input type="text" id="newtags" placeholder="New tags, comma-separated">
+      <span class="count" id="count"></span>
+      <button class="primary" id="postBtn">Post</button>
+    </div>
+    <p class="hint">**bold**, *italic*, and links work. ⌘/Ctrl + Enter to post.</p>
+  </form>
+</div></section>
+
+<main id="main"></main>
+<footer id="footer"></footer>
+<div class="note" id="note" role="status" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const C = Object.assign({ title:'Marginalia', tagline:'', tags:[], maxLength:1000, perPage:30 }, window.MARGINALIA || {});
+const API = C.apiBase || 'https://api.github.com';
+const LS_KEY = 'marginalia-auth';
+const $ = id => document.getElementById(id);
+
+// ─── Small helpers ───────────────────────────────────────────────
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cleanTag = t => String(t).replace(/[^A-Za-z0-9_\- ]/g, '').trim().replace(/^[-_ ]+|[-_ ]+$/g, '').toLowerCase();
+function render(text) {
+  let h = esc(text);
+  h = h.replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/gi, '<a href="$1" rel="noopener" target="_blank">$1</a>');
+  h = h.replace(/\*\*(.+?)\*\*/gs, '<strong>$1</strong>');
+  h = h.replace(/(^|[^*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])/gs, '$1<em>$2</em>');
+  return h.replace(/\n/g, '<br>');
+}
+function niceDate(iso) {
+  const d = new Date(iso), today = new Date(); today.setHours(0,0,0,0);
+  const day = new Date(d); day.setHours(0,0,0,0);
+  const diff = Math.round((today - day) / 864e5);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  return d.toLocaleDateString('en-US', d.getFullYear() === today.getFullYear()
+    ? { month:'short', day:'numeric' } : { month:'short', day:'numeric', year:'numeric' });
+}
+function toast(msg, bad) {
+  const n = $('note'); n.textContent = msg; n.className = 'note' + (bad ? ' bad' : ''); n.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => n.hidden = true, bad ? 6000 : 3500);
+}
+const b64enc = s => { const b = new TextEncoder().encode(s); let bin = ''; for (const x of b) bin += String.fromCharCode(x); return btoa(bin); };
+const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), c => c.charCodeAt(0)));
+
+// ─── Which repo is this? ─────────────────────────────────────────
+function detectRepo() {
+  if (C.owner && C.repo) return { owner: C.owner, repo: C.repo };
+  const host = location.hostname;
+  if (!host.endsWith('.github.io')) return null;
+  const owner = host.replace(/\.github\.io$/, '');
+  const seg = location.pathname.split('/').filter(Boolean)[0];
+  const repo = seg && !/\.html?$/.test(seg) ? seg : `${owner}.github.io`;
+  return { owner, repo };
+}
+
+// ─── Auth (token kept only in this browser) ─────────────────────
+let auth = null;
+try { auth = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { auth = null; }
+const isOwner = () => !!(auth && auth.token);
+
+async function gh(path, opts = {}) {
+  const r = await fetch(`${API}/repos/${auth.owner}/${auth.repo}/${path}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${auth.token}`, Accept: 'application/vnd.github+json',
+               'X-GitHub-Api-Version': '2022-11-28', ...(opts.body ? {'Content-Type':'application/json'} : {}), ...(opts.headers || {}) },
+  });
+  if (!r.ok) { const e = new Error(`GitHub said ${r.status}`); e.status = r.status; throw e; }
+  return r.status === 204 ? null : r.json();
+}
+async function readRepoFile(path) {
+  try {
+    const m = await gh(`contents/${path}?ref=${encodeURIComponent(auth.branch)}`);
+    let text = m.content ? b64dec(m.content) : null;
+    if (text === null) {   // files over 1 MB come without inline content
+      text = await (await fetch(`${API}/repos/${auth.owner}/${auth.repo}/contents/${path}?ref=${encodeURIComponent(auth.branch)}`,
+        { headers: { Authorization: `Bearer ${auth.token}`, Accept: 'application/vnd.github.raw+json' } })).text();
+    }
+    return { text, sha: m.sha };
+  } catch (e) { if (e.status === 404) return { text: null, sha: null }; throw e; }
+}
+async function writeRepoFile(path, text, sha, message) {
+  return gh(`contents/${path}`, { method: 'PUT',
+    body: JSON.stringify({ message, content: b64enc(text), branch: auth.branch, ...(sha ? { sha } : {}) }) });
+}
+// Read → change → write, retrying once if another device saved in between.
+async function updateRepoFile(path, change, message) {
+  for (let attempt = 0; ; attempt++) {
+    const cur = await readRepoFile(path);
+    const next = change(cur.text);
+    try { await writeRepoFile(path, next, cur.sha, message); return next; }
+    catch (e) { if (attempt === 0 && (e.status === 409 || e.status === 422)) continue; throw e; }
+  }
+}
+const parsePosts = t => { try { const a = JSON.parse(t || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } };
+const postsJSON = a => JSON.stringify(a, null, 2) + '\n';
+
+// ─── State & loading ─────────────────────────────────────────────
+let posts = [];          // oldest first
+let aboutText = '';
+let showCount = C.perPage;
+const params = new URLSearchParams(location.search);
+const view = { about: params.has('about'), tag: params.get('tag') ? cleanTag(params.get('tag')) : '' };
+
+async function load() {
+  if (isOwner()) {       // straight from GitHub so you see your newest post immediately
+    try {
+      const [p, a] = await Promise.all([readRepoFile('posts.json'), readRepoFile('about.md')]);
+      posts = parsePosts(p.text); aboutText = (a.text || '').trim(); return;
+    } catch (e) {
+      if (e.status === 401) { toast('Your GitHub token stopped working. Set it up again at #write.', true); }
+    }
+  }
+  const bust = '?v=' + Date.now();
+  const [p, a] = await Promise.all([
+    fetch('posts.json' + bust).then(r => r.ok ? r.text() : '[]').catch(() => '[]'),
+    fetch('about.md' + bust).then(r => r.ok ? r.text() : '').catch(() => ''),
+  ]);
+  posts = parsePosts(p); aboutText = a.trim();
+}
+
+// ─── Rendering ───────────────────────────────────────────────────
+function tagCounts() {
+  const m = {}; for (const p of posts) for (const t of p.tags || []) m[t] = (m[t] || 0) + 1;
+  return Object.entries(m).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+}
+function renderHeader() {
+  document.title = (view.about ? 'About · ' : view.tag ? `#${view.tag} · ` : '') + C.title;
+  $('title').textContent = C.title; $('tagline').textContent = C.tagline;
+  if (view.about) $('aboutLink').setAttribute('aria-current', 'page');
+  $('signOut').hidden = !isOwner();
+  const counts = tagCounts();
+  if (!counts.length) { $('tagsArea').innerHTML = ''; return; }
+  $('tagsArea').innerHTML = `
+    <details class="tagbox">
+      <summary><span class="caret" aria-hidden="true"></span>Tags${view.tag ? ` <span class="cur">· #${esc(view.tag)}</span>` : ''}</summary>
+      <nav class="tagbar" aria-label="Filter by tag">
+        <a class="chip${view.tag || view.about ? '' : ' on'}" href="./">all<span class="n">${posts.length}</span></a>
+        ${counts.map(([t, n]) => `<a class="chip${t === view.tag ? ' on' : ''}" href="?tag=${encodeURIComponent(t)}">#${esc(t)}<span class="n">${n}</span></a>`).join('')}
+      </nav>
+    </details>
+    ${view.tag ? '<a class="clear" href="./">Show all posts</a>' : ''}`;
+}
+function renderPick() {
+  const all = [...new Set([...C.tags.map(cleanTag), ...tagCounts().map(([t]) => t)])].filter(Boolean);
+  $('pick').innerHTML = all.map((t, i) =>
+    `<input type="checkbox" value="${esc(t)}" id="t${i}"><label for="t${i}">#${esc(t)}</label>`).join('');
+}
+function renderFeed() {
+  const list = view.tag ? posts.filter(p => (p.tags || []).includes(view.tag)) : posts.slice();
+  // Colour is anchored to the OLDEST post (gray), then alternates upward.
+  const shaded = list.map((p, i) => ({ ...p, shade: i % 2 === 0 ? 'gray' : 'white' })).reverse();
+  const shown = shaded.slice(0, showCount);
+  $('main').innerHTML = (shown.length ? shown.map(p => `
+    <article class="post ${p.shade}" id="p-${esc(p.id)}"><div class="wrap">
+      <div class="meta">
+        <a class="when" href="#p-${esc(p.id)}"><time datetime="${esc(p.created)}">${esc(niceDate(p.created))}</time></a>
+        ${isOwner() ? `<button class="del" data-id="${esc(p.id)}">Delete</button>` : ''}
+      </div>
+      <p class="body">${render(p.body)}</p>
+      ${(p.tags || []).length ? `<div class="tags">${p.tags.map(t => `<a class="chip" href="?tag=${encodeURIComponent(t)}">#${esc(t)}</a>`).join('')}</div>` : ''}
+    </div></article>`).join('')
+    : `<p class="empty">${view.tag ? `No posts tagged #${esc(view.tag)} yet.` : 'No posts yet.'}</p>`)
+    + (shaded.length > showCount ? '<div class="pager"><button class="quiet" id="more">Show older posts</button></div>' : '');
+  $('footer').innerHTML = `${posts.length} post${posts.length === 1 ? '' : 's'} · <a href="?about">About</a>`;
+  if (location.hash.startsWith('#p-')) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+}
+function renderAbout(editing = false) {
+  $('main').innerHTML = `<section class="about"><div class="wrap">
+    ${editing ? `
+      <textarea id="aboutBox" style="min-height:240px">${esc(aboutText)}</textarea>
+      <div class="row"><button class="primary" id="aboutSave">Save</button><button class="quiet" id="aboutCancel">Cancel</button></div>
+      <p class="hint">**bold**, *italic*, and links work. Blank lines start new paragraphs.</p>`
+    : `<p class="body">${aboutText ? render(aboutText) : 'Nothing here yet.'}</p>`}
+    <p class="back"><a href="./">← Back to posts</a>${isOwner() && !editing ? '<a href="#" id="aboutEdit">Edit</a>' : ''}</p>
+  </div></section>`;
+  $('footer').innerHTML = '';
+}
+function renderAll() {
+  renderHeader();
+  $('compose').hidden = !isOwner() || view.about;
+  if (isOwner()) renderPick();
+  view.about ? renderAbout() : renderFeed();
+}
+
+// ─── Owner actions ───────────────────────────────────────────────
+async function submitPost(e) {
+  e.preventDefault();
+  const body = $('body').value.replace(/\r\n/g, '\n').trim();
+  if (!body) return;
+  if (body.length > C.maxLength) return toast(`That post is over ${C.maxLength} characters.`, true);
+  const tags = [...new Set([
+    ...[...$('pick').querySelectorAll('input:checked')].map(i => i.value),
+    ...$('newtags').value.split(',').map(cleanTag)].filter(Boolean))];
+  const now = new Date();
+  const post = { id: now.toISOString().replace(/\D/g, '').slice(0, 14) + '-' + Math.random().toString(36).slice(2, 6),
+                 created: now.toISOString(), body, tags };
+  $('postBtn').disabled = true; $('postBtn').textContent = 'Posting…';
+  try {
+    const text = await updateRepoFile('posts.json', t => postsJSON([...parsePosts(t), post]), `New note: ${body.slice(0, 50)}`);
+    posts = parsePosts(text);
+    $('body').value = ''; $('newtags').value = ''; updateCount();
+    renderAll();
+    toast('Posted. Readers will see it within a minute or two.');
+  } catch (err) { toast(`Couldn't post (${err.message}). Your text is still in the box.`, true); }
+  finally { $('postBtn').disabled = false; $('postBtn').textContent = 'Post'; }
+}
+async function deletePost(id) {
+  if (!confirm('Delete this post?')) return;
+  try {
+    const text = await updateRepoFile('posts.json', t => postsJSON(parsePosts(t).filter(p => p.id !== id)), 'Delete note');
+    posts = parsePosts(text); renderAll(); toast('Deleted.');
+  } catch (err) { toast(`Couldn't delete (${err.message}).`, true); }
+}
+async function saveAbout() {
+  const btn = $('aboutSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  const text = $('aboutBox').value.replace(/\r\n/g, '\n').trim();
+  try {
+    await updateRepoFile('about.md', () => text + '\n', 'Update About page');
+    aboutText = text; renderAbout(); toast('About page saved.');
+  } catch (err) { toast(`Couldn't save (${err.message}).`, true); btn.disabled = false; btn.textContent = 'Save'; }
+}
+
+// ─── Device setup (#write) ───────────────────────────────────────
+function showSetup() {
+  const r = detectRepo();
+  $('repoName').textContent = r ? `${r.owner}/${r.repo}` : 'this repo (set owner/repo in config.js)';
+  $('setup').hidden = false; $('tokenInput').focus();
+}
+async function saveToken(e) {
+  e.preventDefault();
+  const err = $('setupErr'); err.hidden = true;
+  const r = detectRepo();
+  if (!r) { err.textContent = "Couldn't tell which repo this is. Fill in owner and repo in config.js."; err.hidden = false; return; }
+  const token = $('tokenInput').value.trim();
+  try {
+    const res = await fetch(`${API}/repos/${r.owner}/${r.repo}`, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } });
+    if (!res.ok) throw new Error(res.status === 401 ? 'GitHub didn’t accept that token.' : res.status === 404 ? `This token can’t see ${r.owner}/${r.repo}.` : `GitHub said ${res.status}.`);
+    const info = await res.json();
+    if (info.permissions && !info.permissions.push) throw new Error('That token can read the repo but not write to it. Give it “Contents: Read and write”.');
+    auth = { token, owner: r.owner, repo: r.repo, branch: C.branch || info.default_branch || 'main' };
+    localStorage.setItem(LS_KEY, JSON.stringify(auth));
+    $('setup').hidden = true; $('tokenInput').value = '';
+    history.replaceState(null, '', location.pathname + location.search);
+    await load(); renderAll(); toast('This device can now post.');
+  } catch (e2) { err.textContent = e2.message; err.hidden = false; }
+}
+
+// ─── Wiring ──────────────────────────────────────────────────────
+function updateCount() {
+  const n = $('body').value.length, c = $('count');
+  c.textContent = C.maxLength - n; c.classList.toggle('over', n > C.maxLength * .9);
+}
+$('body').maxLength = C.maxLength;
+$('body').addEventListener('input', updateCount);
+$('body').addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') $('composer').requestSubmit(); });
+$('composer').addEventListener('submit', submitPost);
+$('setupForm').addEventListener('submit', saveToken);
+$('setupCancel').addEventListener('click', () => { $('setup').hidden = true; history.replaceState(null, '', location.pathname + location.search); });
+$('signOut').addEventListener('click', () => {
+  if (!confirm('Remove your GitHub token from this device? You can set it up again at #write.')) return;
+  localStorage.removeItem(LS_KEY); auth = null; renderAll(); toast('Signed out on this device.');
+});
+$('main').addEventListener('click', e => {
+  const t = e.target;
+  if (t.matches('.del')) deletePost(t.dataset.id);
+  else if (t.id === 'more') { showCount += C.perPage; renderFeed(); }
+  else if (t.id === 'aboutEdit') { e.preventDefault(); renderAbout(true); $('aboutBox').focus(); }
+  else if (t.id === 'aboutCancel') renderAbout();
+  else if (t.id === 'aboutSave') saveAbout();
+});
+window.addEventListener('hashchange', () => { if (location.hash === '#write') showSetup(); });
+
+(async () => {
+  await load();
+  renderAll(); updateCount();
+  if (location.hash === '#write') showSetup();
+})();
+})();
+</script>
+</body>
+</html>
