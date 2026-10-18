@@ -83,9 +83,10 @@
   {
     "id": "20261018200845-4fmg",
     "created": "2026-10-18T20:08:45.508Z",
-    "body": "A patient started on norepinephrine for a soft MAP put out 5 liters of urine over the next day without a single dose of furosemide. That was pressure natriuresis.\n\nWhen renal perfusion pressure rises, the kidney excretes more sodium and water, and the curve is steep: a modest gain in MAP buys a large gain in output. Higher pressure raises medullary blood flow and renal interstitial pressure, and proximal tubule sodium transporters (NHE3) retreat from the apical membrane, so less sodium is reclaimed. Before the pressor, this patient was likely total-body overloaded but sitting low on that curve. The kidney was holding onto everything because it was underperfused, not because it needed more volume. Bringing the MAP up moved him back onto the steep part of the curve, and the kidney dumped the excess it had been unable to clear.\n\nThe bedside lesson is that oliguria in a volume-overloaded, hypotensive patient may be a pressure problem, not a diuretic problem. Fix the MAP first, then reasses",
+    "body": "A patient started on norepinephrine for a soft MAP put out 5 L of urine over the next day with no furosemide. That’s pressure natriuresis.\n\nWhen renal perfusion pressure rises, the kidney excretes more sodium and water, and the response is steep: a small gain in MAP produces a large gain in output. Medullary flow and interstitial pressure go up, and proximal NHE3 moves away from the apical membrane, so less sodium is reabsorbed. He was volume overloaded but underperfused, which put him on the flat part of the curve. The pressor moved him onto the steep part, and the kidney cleared what it couldn’t before.\n\nLesson: oliguria in a hypotensive, overloaded patient may be a pressure problem rather than a diuretic problem. Fix the MAP first, then reassess. After that, follow lytes and volume closely, because the kidney won’t stop at euvolemia on its own.",
     "tags": [
       "medicine"
-    ]
+    ],
+    "edited": "2026-10-18T20:09:35.892Z"
   }
 ]
