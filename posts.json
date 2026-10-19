@@ -88,5 +88,13 @@
       "medicine"
     ],
     "edited": "2026-10-18T20:09:35.892Z"
+  },
+  {
+    "id": "20261019221414-usil",
+    "created": "2026-10-19T22:14:14.517Z",
+    "body": "The drug follows the clot, and the clot follows the flow.\n\nArterial clots form under high flow and shear, usually on a ruptured plaque. Platelets stick and aggregate first, making a pale “white clot.” Venous clots form where blood is slow or still. There the coagulation cascade dominates, and fibrin traps red cells into a “red clot.”\n\nSo antiplatelets (aspirin, clopidogrel, ticagrelor) are for arterial disease: MI, ischemic stroke, stent thrombosis. Anticoagulants (heparin, warfarin, DOACs) are for venous disease: DVT and PE.\n\nAFib is the exception that proves the rule. The clot forms in a stagnant left atrial appendage. It is on the arterial side but follows venous physics. That’s why we anticoagulate rather than give aspirin, even though the outcome we fear is a stroke.",
+    "tags": [
+      "medicine"
+    ]
   }
 ]
