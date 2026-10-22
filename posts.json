@@ -113,5 +113,13 @@
       "medicine"
     ],
     "edited": "2026-10-21T12:41:46.838Z"
+  },
+  {
+    "id": "20261022150732-wlej",
+    "created": "2026-10-22T15:07:32.144Z",
+    "body": "When pressors aren’t working, think micronutrients\n\nThiamine. Shoshin beriberi causes vasodilatory shock with rising lactate. Suspect it with alcohol use, bariatric surgery, TPN, or loop diuretics. Give IV thiamine empirically rather than waiting for a level.\n\nIonized calcium. Low iCa reduces vascular tone and contractility. Check Mg too, because hypomagnesemia drives hypocalcemia.\n\nSelenium. Consider it in dialysis, long-term TPN, or malabsorption.\n\nIn chronic orthostatic hypotension, B12 deficiency (confirmed with MMA) causes autonomic dysfunction. Iron deficiency and low vitamin D have weaker associations.",
+    "tags": [
+      "medicine"
+    ]
   }
 ]
